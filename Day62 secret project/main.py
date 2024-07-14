@@ -1,8 +1,8 @@
 from flask import Flask, render_template
 from flask_bootstrap import Bootstrap5
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import StringField, SubmitField, SelectField
+from wtforms.validators import DataRequired, URL
 import csv
 
 '''
@@ -25,6 +25,12 @@ Bootstrap5(app)
 
 class CafeForm(FlaskForm):
     cafe = StringField('Cafe name', validators=[DataRequired()])
+    cafe_location = StringField('Cafe Location URL', validators=[DataRequired(), URL()])
+    cafe_open_time = StringField('Cafe open time, eg: 8.30am', validators=[DataRequired()])
+    cafe_closing_time = StringField('Cafe closing time, eg: 5.30pm', validators=[DataRequired()])
+    cafe_coffee_rating = SelectField('Cafe coffee rating', choices=[('☕️'), ('☕️☕️'), ('☕️☕️☕️'),('☕️☕️☕️☕️')], validators=[DataRequired()])
+    cafe_wifi_rating = SelectField('Cafe wifi rating', choices=[('✘'),('💪'), ('💪💪'), ('💪💪💪'),('💪💪💪💪')], validators=[DataRequired()])
+    cafe_power_outlet_rating = SelectField('Cafe power outlet rating', choices=[('✘'),('🔌'), ('🔌🔌'), ('🔌🔌'),('🔌🔌🔌')], validators=[DataRequired()])
     submit = SubmitField('Submit')
 
 # Exercise:
