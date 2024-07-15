@@ -1,12 +1,13 @@
 from flask import Flask, render_template, request, redirect, url_for
 
+
 app = Flask(__name__)
 all_books = []
 
 
 @app.route('/')
 def home():
-    return render_template("index.html", books=all_books)
+    return render_template("index.html", books=all_books, length=len(all_books))
 
 
 @app.route("/add", methods=["GET", "POST"])
