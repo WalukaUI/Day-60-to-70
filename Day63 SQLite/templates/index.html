@@ -11,7 +11,7 @@
       <p>Library is empty.</p>
       {% else: %}
       {% for item in books:%}
-      <li>{{ item.title}} - {{item.author}} - {{item.rating}}<button href="{{url_for('delete', id=item.id)}}">Delete</button> </li>
+      <li><button><a href="{{url_for('update',one_item=item.id)}}">Edit</a></button>{{ item.title}} - {{item.author}} - {{item.rating}}<button><a href="{{url_for('delete', ids=item.id)}}">Delete</a></button> </li>
       {% endfor %}
       {% endif %}
     </ul>

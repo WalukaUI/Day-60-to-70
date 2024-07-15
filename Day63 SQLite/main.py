@@ -5,6 +5,7 @@ from sqlalchemy import Integer, String, Float
 
 app = Flask(__name__)
 
+
 class Base(DeclarativeBase):
   pass
 
@@ -29,7 +30,6 @@ class Book(db.Model):
 # Create table schema in the database. Requires application context.
 with app.app_context():
     db.create_all()
-
 
 
 aray_list = []
@@ -60,10 +60,32 @@ def add():
     return render_template("add.html")
 
 
+@app.route("/update", methods=["GET", "POST"])
+def update():
+    if request.method == "POST":
+        get_id = request.form['id']
+        new_rating = request.form['rating']
+        book_to_update = db.get_or_404(Book, get_id)
+        book_to_update.rating = new_rating
+        db.session.commit()
+        return redirect(url_for('home'))
+    obj_id = request.args.get('one_item')
+    book_selected = db.get_or_404(Book, obj_id)
+    return render_template("update.html", one_obj=book_selected)
+
+
+
 @app.route("/delete")
-def delete(id):
-    print(id)
+def delete():
+    id_num = request.args.get('ids')
+    with app.app_context():
+        book_to_delete = db.session.execute(db.select(Book).where(Book.id == id_num)).scalar()
+        # or book_to_delete = db.get_or_404(Book, book_id)
+        db.session.delete(book_to_delete)
+        db.session.commit()
+    return render_template("delete.html", id=id_num)
 
 
 if __name__ == "__main__":
     app.run(debug=True)
+

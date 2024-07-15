@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Update</title>
+</head>
+<body>
+  <h2>Updated</h2>
+    <h4>{{one_obj.title}}</h4>
+    <h4>{{one_obj.author}}</h4>
+    <h4>current rating = {{one_obj.rating}}</h4>
+  <p>Edit rating</p>
+  <form action="{{url_for('update')}}" method="post">
+      <input hidden="hidden" name="id" value="{{one_obj.id}}">
+      <input name="rating" type="flote" placeholder="New Rating">
+      <button type="submit">Submit</button>
+  </form><br><br>
+
+<button><a href="{{url_for('home')}}">Home</a></button>
+</body>
+</html>
