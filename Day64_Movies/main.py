@@ -4,7 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Float
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, SelectField, IntegerField
+from wtforms import StringField, SubmitField, SelectField, IntegerField, FloatField
 from wtforms.validators import DataRequired, URL
 import requests
 
@@ -31,13 +31,13 @@ class Base(DeclarativeBase):
     pass
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-books-collection.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///new-movie-collection.db"
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
 
 # CREATE TABLE
-class Book(db.Model):
+class Movie(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
     year: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -57,7 +57,7 @@ class MovieForm(FlaskForm):
     title = StringField('Movie name', validators=[DataRequired()])
     year = IntegerField('Movie year', validators=[DataRequired()])
     description = StringField('Movie Description, eg: Great', validators=[DataRequired()])
-    rating = SelectField('Movie rating', choices=[0, 1, 2, 3, 4, 5], validators=[DataRequired()])
+    rating = FloatField('Movie rating',validators=[DataRequired()])
     ranking = SelectField('Movie ranking', choices=[0, 1, 2, 3, 4, 5], validators=[DataRequired()])
     review = StringField('Movie review', validators=[DataRequired()])
     image_url = StringField('Image URL', validators=[DataRequired(), URL()])
@@ -66,24 +66,30 @@ class MovieForm(FlaskForm):
 
 with app.app_context():
     db.create_all()
+movies = []
 
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    movies.clear()
+    with app.app_context():
+        result = db.session.execute(db.select(Movie).order_by(Movie.title))
+        all_movies = result.scalars()
+        for movie in all_movies:
+            movies.append(movie)
+        print(movies)
+    return render_template("index.html", movies_list=movies)
 
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
     form = MovieForm()
     if form.validate_on_submit():
-        newline = [form.title.data, form.year.data, form.description.data, form.rating.data,
-                   form.ranking.data, form.review.data, form.image_url.data]
-        print(newline)
-    # with app.app_context():
-    #     new_book = Book(id=2, title=request.form["title"], author=request.form["title"], rating=9.3)
-    #     db.session.add(new_book)
-    #     db.session.commit()
+        with app.app_context():
+            new_movie = Movie(title=form.title.data, year=form.year.data, description=form.description.data, rating=form.rating.data, ranking=form.ranking.data, review=form.review.data, image_url=form.image_url.data)
+            db.session.add(new_movie)
+            db.session.commit()
+        return render_template("index.html")
     return render_template("add.html", form=form)
 
 

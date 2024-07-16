@@ -3,9 +3,15 @@
 {% block title %}Add Movie{% endblock %}
 
 {% block content %}
+
 <div class="content">
+    <div>
+        <br>
+  <a href="{{url_for('home')}}" class="button">Home</a>
+</div>
     <h1 class="heading">Add a Movie</h1>
     {{render_form(form)}}
-    <a href="{{url_for('home')}}" class="button">Home</a>
 </div>
+
+
 {% endblock %}
