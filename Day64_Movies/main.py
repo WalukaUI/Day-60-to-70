@@ -100,7 +100,14 @@ def update():
 
 @app.route("/delete")
 def delete():
-    return render_template("delete.html")
+    item_id_to_dlt = request.args.get('item_to_delete')
+    with app.app_context():
+        # movie_to_delete = db.session.execute(db.select(Movie).where(Movie.id == item_id_to_dlt)).scalar()
+        movie_to_delete = db.get_or_404(Movie, item_id_to_dlt)
+        db.session.delete(movie_to_delete)
+        db.session.commit()
+        print("deleted")
+    return render_template("delete.html", item=movie_to_delete)
 
 
 if __name__ == '__main__':
