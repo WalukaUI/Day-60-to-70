@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% from 'bootstrap5/form.html' import render_form %}
 {% block title %}Edit Movies{% endblock %}
 
 {% block content %}
@@ -8,7 +8,7 @@
     <br>
   <a href="{{url_for('home')}}" class="button">Home</a>
 </div>
-  <h1 class="heading">Movie Title</h1>
-    <p class="description">Edit Movie Rating</p>
+  <h1 class="heading">{{item.title}}</h1>
+        {{ render_form(form, novalidate=True) }}
   </div>
 {% endblock %}

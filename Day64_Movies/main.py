@@ -64,6 +64,12 @@ class MovieForm(FlaskForm):
     submit = SubmitField('Submit')
 
 
+class RateMovieForm(FlaskForm):
+    rating = StringField("Your Rating Out of 10 e.g. 7.5")
+    review = StringField("Your Review")
+    submit = SubmitField("Done")
+
+
 with app.app_context():
     db.create_all()
 movies = []
@@ -73,11 +79,10 @@ movies = []
 def home():
     movies.clear()
     with app.app_context():
-        result = db.session.execute(db.select(Movie).order_by(Movie.title))
+        result = db.session.execute(db.select(Movie).order_by(Movie.rating))
         all_movies = result.scalars()
         for movie in all_movies:
             movies.append(movie)
-        print(movies)
     return render_template("index.html", movies_list=movies)
 
 
@@ -93,9 +98,17 @@ def add():
     return render_template("add.html", form=form)
 
 
-@app.route("/update")
+@app.route("/update", methods=["GET", "POST"])
 def update():
-    return render_template("edit.html")
+    form = RateMovieForm()
+    movie_id = request.args.get('item_to_update')
+    movie = db.get_or_404(Movie, movie_id)
+    if form.validate_on_submit():
+        movie.rating = float(form.rating.data)
+        movie.review = form.review.data
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template("edit.html", item=movie, form=form)
 
 
 @app.route("/delete")
@@ -106,7 +119,6 @@ def delete():
         movie_to_delete = db.get_or_404(Movie, item_id_to_dlt)
         db.session.delete(movie_to_delete)
         db.session.commit()
-        print("deleted")
     return render_template("delete.html", item=movie_to_delete)
 
 
