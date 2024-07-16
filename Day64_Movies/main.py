@@ -2,10 +2,10 @@ from flask import Flask, render_template, redirect, url_for, request
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Float, URL
+from sqlalchemy import Integer, String, Float
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms import StringField, SubmitField, SelectField, IntegerField
+from wtforms.validators import DataRequired, URL
 import requests
 
 '''
@@ -45,12 +45,23 @@ class Book(db.Model):
     rating: Mapped[float] = mapped_column(Float, nullable=False)
     ranking: Mapped[float] = mapped_column(Float, nullable=False)
     review: Mapped[str] = mapped_column(String(250), nullable=False)
-    image_url: Mapped[str] = mapped_column(String(250), nullable=False, URL=True)
+    image_url: Mapped[str] = mapped_column(String(250), nullable=False)
 
     # Optional: this will allow each book object to be identified by its title when printed.
 
     def __repr__(self):
         return f'<Book {self.title}>'
+
+
+class MovieForm(FlaskForm):
+    title = StringField('Movie name', validators=[DataRequired()])
+    year = IntegerField('Movie year', validators=[DataRequired()])
+    description = StringField('Movie Description, eg: Great', validators=[DataRequired()])
+    rating = SelectField('Movie rating', choices=[0, 1, 2, 3, 4, 5], validators=[DataRequired()])
+    ranking = SelectField('Movie ranking', choices=[0, 1, 2, 3, 4, 5], validators=[DataRequired()])
+    review = StringField('Movie review', validators=[DataRequired()])
+    image_url = StringField('Image URL', validators=[DataRequired(), URL()])
+    submit = SubmitField('Submit')
 
 
 with app.app_context():
@@ -62,13 +73,18 @@ def home():
     return render_template("index.html")
 
 
-@app.route("/add")
+@app.route("/add", methods=["GET", "POST"])
 def add():
+    form = MovieForm()
+    if form.validate_on_submit():
+        newline = [form.title.data, form.year.data, form.description.data, form.rating.data,
+                   form.ranking.data, form.review.data, form.image_url.data]
+        print(newline)
     # with app.app_context():
     #     new_book = Book(id=2, title=request.form["title"], author=request.form["title"], rating=9.3)
     #     db.session.add(new_book)
     #     db.session.commit()
-    return render_template("add.html")
+    return render_template("add.html", form=form)
 
 
 @app.route("/update")
