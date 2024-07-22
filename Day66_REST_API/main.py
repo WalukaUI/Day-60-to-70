@@ -116,6 +116,20 @@ def patch_new_price(cafe_id):
 
 
 # HTTP DELETE - Delete Record
+@app.route("/report-closed/<int:cafe_id>", methods=["DELETE"])
+def delete_cafe(cafe_id):
+    # We can add a security feature by requiring an api-key . If they have the api-key "TopSecretAPIKey"
+    api_key = request.args.get("api-key")
+    if api_key == "TopSecretAPIKey":
+        cafe = db.get_or_404(Cafe, cafe_id)
+        if cafe:
+            db.session.delete(cafe)
+            db.session.commit()
+            return jsonify(response={"success": "Successfully deleted the cafe from the database."}), 200
+        else:
+            return jsonify(error={"Not Found": "Sorry a cafe with that id was not found in the database."}), 404
+    else:
+        return jsonify(error={"Forbidden": "Sorry, that's not allowed. Make sure you have the correct api_key."}), 403
 
 
 if __name__ == '__main__':
