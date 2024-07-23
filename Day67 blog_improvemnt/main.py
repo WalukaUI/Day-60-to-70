@@ -45,6 +45,15 @@ class BlogPost(db.Model):
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
 
 
+class BlogForm(FlaskForm):
+    title = StringField("Title", validators=[DataRequired()])
+    subtitle = StringField("Subtitle", validators=[DataRequired()])
+    author = StringField("Author",  validators=[DataRequired()])
+    URL = StringField('Image URL', validators=[DataRequired(), URL()])
+    body = StringField("Main",  validators=[DataRequired()])
+    submit = SubmitField("Done")
+
+
 with app.app_context():
     db.create_all()
 
@@ -53,17 +62,28 @@ with app.app_context():
 def get_all_posts():
     # TODO: Query the database for all the posts. Convert the data to a python list.
     posts = []
+    results = db.session.execute(db.select(BlogPost))
+    posts = results.scalars().all()
     return render_template("index.html", all_posts=posts)
 
+
 # TODO: Add a route so that you can click on individual posts.
-@app.route('/')
+@app.route('/post/<post_id>')
 def show_post(post_id):
     # TODO: Retrieve a BlogPost from the database based on the post_id
-    requested_post = "Grab the post from your database"
+    requested_post = db.get_or_404(BlogPost, post_id)
+    print(requested_post)
     return render_template("post.html", post=requested_post)
 
 
 # TODO: add_new_post() to create a new blog post
+@app.route('/new-post', methods=["GET", "POST"])
+def new_post():
+    form = BlogForm()
+    if form.validate_on_submit():
+        pass
+    return render_template("make-post.html", form=form)
+
 
 # TODO: edit_post() to change an existing blog post
 
