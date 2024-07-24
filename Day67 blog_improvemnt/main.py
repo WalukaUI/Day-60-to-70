@@ -24,7 +24,10 @@ This will install the packages from the requirements.txt for this project.
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+# Initialise the CKEditor so that you can use it in make_post.html
+ckeditor = CKEditor(app)
 Bootstrap5(app)
+
 
 # CREATE DATABASE
 class Base(DeclarativeBase):
@@ -48,9 +51,10 @@ class BlogPost(db.Model):
 class BlogForm(FlaskForm):
     title = StringField("Title", validators=[DataRequired()])
     subtitle = StringField("Subtitle", validators=[DataRequired()])
-    author = StringField("Author",  validators=[DataRequired()])
-    URL = StringField('Image URL', validators=[DataRequired(), URL()])
-    body = StringField("Main",  validators=[DataRequired()])
+    author_name = StringField("Author",  validators=[DataRequired()])
+    image_url = StringField('Image URL', validators=[DataRequired(), URL()])
+    # Notice body is using a CKEditorField and not a StringField
+    blog_content = CKEditorField("Blog Content",  validators=[DataRequired()])
     submit = SubmitField("Done")
 
 
@@ -81,7 +85,11 @@ def show_post(post_id):
 def new_post():
     form = BlogForm()
     if form.validate_on_submit():
-        pass
+        new_blog = BlogPost(img_url=form.image_url.data, title=form.title.data,body=form.blog_content.data, author=form.author_name.data, subtitle=form.subtitle.data, date=date.today().strftime("%B %d, %Y"))
+        print(new_blog)
+        db.session.add(new_blog)
+        db.session.commit()
+        return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form)
 
 
