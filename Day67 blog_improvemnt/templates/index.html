@@ -34,8 +34,10 @@
           on {{post.date}}
         </p>
       </div>
+      <a class="btn btn-secondary text-uppercase" href="{{ url_for('delete_post', post_id=post.id) }}">Delete Post ✘ →</a>
       <!-- Divider-->
       <hr class="my-4" />
+
       {% endfor %}
 
       <!-- New Post -->
