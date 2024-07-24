@@ -29,8 +29,18 @@ class User(db.Model):
     name: Mapped[str] = mapped_column(String(1000))
 
 
+
 with app.app_context():
     db.create_all()
+
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get(user_id)
 
 
 @app.route('/')
@@ -54,8 +64,17 @@ def register():
     return render_template("register.html")
 
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == "POST":
+        log_email = request.form["email"]
+        pass_wd = request.form["password"]
+        user = db.session.execute(db.select(User).where(User.email == log_email)).scalar()
+        if check_password_hash(user.password, pass_wd) and user.email == log_email:
+            login_user(user)
+            return render_template("secrets.html", name=user.name)
+        else:
+            return redirect(url_for("login"))
     return render_template("login.html")
 
 
