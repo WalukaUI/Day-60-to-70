@@ -76,13 +76,12 @@ def get_all_posts():
 def show_post(post_id):
     # TODO: Retrieve a BlogPost from the database based on the post_id
     requested_post = db.get_or_404(BlogPost, post_id)
-    print(requested_post)
     return render_template("post.html", post=requested_post)
 
 
 # TODO: add_new_post() to create a new blog post
-@app.route('/new-post', methods=["GET", "POST"])
-def new_post():
+@app.route('/make-post', methods=["GET", "POST"])
+def make_post():
     form = BlogForm()
     if form.validate_on_submit():
         new_blog = BlogPost(img_url=form.image_url.data, title=form.title.data,body=form.blog_content.data, author=form.author_name.data, subtitle=form.subtitle.data, date=date.today().strftime("%B %d, %Y"))
@@ -94,6 +93,26 @@ def new_post():
 
 
 # TODO: edit_post() to change an existing blog post
+@app.route('/edit-post/<post_id>', methods=["GET", "POST"])
+def edit_post(post_id):
+    post_to_edit = db.get_or_404(BlogPost, post_id)
+    edit_form = BlogForm(
+        title=post_to_edit.title,
+        subtitle=post_to_edit.subtitle,
+        image_url=post_to_edit.img_url,
+        author_name=post_to_edit.author,
+        blog_content=post_to_edit.body
+    )
+    if edit_form.validate_on_submit():
+        post_to_edit.img_url = edit_form.image_url.data
+        post_to_edit.title = edit_form.title.data
+        post_to_edit.body = edit_form.blog_content.data
+        post_to_edit.author = edit_form.author_name.data
+        post_to_edit.subtitle = edit_form.subtitle.data
+        db.session.commit()
+        return redirect(url_for("show_post", post_id=post_id))
+    return render_template("make-post.html", form=edit_form, post=post_to_edit, is_edit=True)
+
 
 # TODO: delete_post() to remove a blog post from the database
 
