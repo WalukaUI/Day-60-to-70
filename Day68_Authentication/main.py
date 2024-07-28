@@ -71,13 +71,16 @@ def login():
         log_email = request.form["email"]
         pass_wd = request.form["password"]
         user = db.session.execute(db.select(User).where(User.email == log_email)).scalar()
-        if check_password_hash(user.password, pass_wd) and user.email == log_email:
+        if not user:
+            flash("That email does not exist, please try again.")
+            return redirect(url_for('login'))
+        elif not check_password_hash(user.password, pass_wd):
+            flash('Password incorrect, please try again.')
+            return redirect(url_for('login'))
+        else:
             login_user(user)
             flash("Login Successful")
             return render_template("secrets.html", name=user.name)
-        else:
-            flash("Login Failed")
-            return redirect(url_for("login"))
     return render_template("login.html")
 
 
