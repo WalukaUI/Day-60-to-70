@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret-key-goes-here'
+app.config['SECRET_KEY'] = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
 
 # CREATE DATABASE
 
@@ -22,7 +22,7 @@ db.init_app(app)
 # CREATE TABLE IN DB
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     email: Mapped[str] = mapped_column(String(100), unique=True)
     password: Mapped[str] = mapped_column(String(100))
@@ -36,11 +36,12 @@ with app.app_context():
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
+    return User.query.get(user_id)
 
 
 @app.route('/')
@@ -72,20 +73,26 @@ def login():
         user = db.session.execute(db.select(User).where(User.email == log_email)).scalar()
         if check_password_hash(user.password, pass_wd) and user.email == log_email:
             login_user(user)
+            flash("Login Successful")
             return render_template("secrets.html", name=user.name)
         else:
+            flash("Login Failed")
             return redirect(url_for("login"))
     return render_template("login.html")
 
 
 @app.route('/secrets')
+@login_required
 def secrets():
     return render_template("secrets.html")
 
 
 @app.route('/logout')
+@login_required
 def logout():
-    pass
+    logout_user()
+    flash("Logged out Successfully")
+    return redirect(url_for("login"))
 
 
 @app.route('/download')
