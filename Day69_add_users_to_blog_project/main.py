@@ -76,8 +76,9 @@ class BlogPost(db.Model):
 
     # Create reference to the User object. The "posts" refers to the posts property in the User class.
     author = relationship("User", back_populates="posts")
-    comments = relationship("Comment", back_populates="posts")
 
+    # ***************Parent Relationship*************#
+    comments = relationship("Comment", back_populates="parent_post")
 
 # TODO: Create a User table for all your registered users. 
 class User(db.Model, UserMixin):
@@ -90,16 +91,23 @@ class User(db.Model, UserMixin):
     # This will act like a List of BlogPost objects attached to each User.
     # The "author" refers to the author property in the BlogPost class.
     posts = relationship("BlogPost", back_populates="author")
+    comments = relationship("Comment", back_populates="comment_author")
 
 
-class Comment(db.Model, UserMixin):
+class Comment(db.Model):
     __tablename__ = "comments"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     text: Mapped[str] = mapped_column(Text, nullable=False)
 
-    # This will act like a List of BlogPost objects attached to each User.
-    # The "author" refers to the author property in the BlogPost class.
-    posts = relationship("BlogPost", back_populates="comments")
+    # *******Add child relationship*******#
+    # "users.id" The users refers to the tablename of the Users class.
+    # "comments" refers to the comments property in the User class.
+    author_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("users.id"))
+    post_id: Mapped[int] = mapped_column(Integer, db.ForeignKey("blog_posts.id"))
+
+    # ***************Child Relationship*************#
+    comment_author = relationship("User", back_populates="comments")
+    parent_post = relationship("BlogPost", back_populates="comments")
 
 
 with app.app_context():
@@ -143,7 +151,6 @@ def login():
             return redirect(url_for('login'))
         else:
             login_user(user)
-            flash("Login Successful")
             return redirect(url_for("get_all_posts"))
     return render_template("login.html", form=form, logged_in=current_user.is_authenticated)
 
@@ -166,10 +173,15 @@ def get_all_posts():
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
     comment_form = CommentForm()
-    if comment_form.validate_on_submit():
-        print("subed")
-        pass
     requested_post = db.get_or_404(BlogPost, post_id)
+    if comment_form.validate_on_submit():
+        if not current_user.is_authenticated:
+            flash("You need to login or register to comment.")
+            return redirect(url_for("login"))
+        new_comment = Comment(text=comment_form.comment.data, comment_author=current_user, parent_post=requested_post)
+        db.session.add(new_comment)
+        db.session.commit()
+        comment_form.comment.data = ""
     return render_template("post.html", post=requested_post, logged_in=current_user.is_authenticated, form=comment_form)
 
 
